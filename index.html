@@ -120,7 +120,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
   <div class="panel-title">CONVERSATION</div>
   <div class="chat" id="chat">
     <div class="msg user"><div class="who">● YOU</div>Hello BATsY</div>
-    <div class="msg"><div class="who">🦇 BATsY</div>Systems online. What are we working on today, Sir?</div>
+    <div class="msg"><div class="who">🦇 BATsY</div>Systems online, Sir. What are we working on today?</div>
   </div>
   <div class="chat-buttons"><button onclick="clearChat()">▣ CLEAR CHAT</button><button onclick="exportChat()">↗ EXPORT</button></div>
 </section>
@@ -249,50 +249,26 @@ function speak(text) {
 function stopVoice() {
     if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
+
 async function processOfflineLLM(inputStr) {
     const query = inputStr.toLowerCase().trim();
     
-    // 1. Friendly Greetings
     if (query.match(/^(hi|hello|hey|greetings|sup)/)) {
         return "Systems online, Sir. What are we working on today?";
     } 
-    // 2. Personal / Identity Questions
     else if (query.includes("who are you") || query.includes("tell about yourself") || query.includes("what can you do")) {
         return "I am BATsY, your personal Batcomputer intelligence interface, Sir. I'm here to assist you with development, analyze data, look up technical records, or brainstorm ideas.";
     } 
-    // 3. Compliments & Praise
     else if (query.includes("good job") || query.includes("well done") || query.includes("great work") || query.includes("awesome") || query.includes("nice")) {
         return "Appreciate it, Sir. Glad I could help out. What's next on the agenda?";
     }
-    // 4. Status / Casual Talk
     else if (query.includes("status") || query.includes("system") || query.includes("how are you")) {
         return "All systems running at peak efficiency, Sir. Ready for your command.";
-    } else if (query.includes("thanks") || query.includes("thank you")) {
+    } 
+    else if (query.includes("thanks") || query.includes("thank you")) {
         return "Always a pleasure, Sir. Let me know if you need anything else.";
     }
 
-    // 5. ONLY search Wikipedia if you explicitly ask "what is" or "tell me about"
-    if (query.startsWith("what is") || query.startsWith("who is") || query.startsWith("tell me about") || query.startsWith("define")) {
-        try {
-            let searchKeyword = inputStr.replace(/who is|what is|tell me about|define|explain/gi, "").trim();
-            let wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchKeyword)}`;
-            let response = await fetch(wikiUrl);
-            if (response.ok) {
-                let data = await response.json();
-                if (data && data.extract) {
-                    let sentences = data.extract.match(/[^.!?]+[.!?]+/g);
-                    if (sentences && sentences.length > 0) {
-                        return sentences.slice(0, 2).join(" ");
-                    }
-                    return data.extract;
-                }
-            }
-        } catch (error) {
-            console.log("Wikipedia query offline or failed.");
-        }
-    }
-
-    // 6. Natural Conversational Fallback (No random explanations!)
     const conversationalFallbacks = [
         `Analyzing that thought, Sir. Would you like to elaborate further?`,
         `Frequencies are clear, Sir. How would you like to proceed with that?`,
@@ -300,3 +276,73 @@ async function processOfflineLLM(inputStr) {
     ];
     return conversationalFallbacks[Math.floor(Math.random() * conversationalFallbacks.length)];
 }
+
+function tick(){
+  const d=new Date();
+  document.getElementById("clock").textContent=d.toLocaleTimeString([], {hour12:false});
+  document.getElementById("date").textContent=d.toLocaleDateString([], {weekday:"long",month:"long",day:"2-digit",year:"numeric"}).toUpperCase();
+}
+setInterval(tick,1000);tick();
+
+function nav(btn){
+  document.querySelectorAll(".menu button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("coreStatus").textContent=btn.textContent.trim()+" MODULE READY.";
+}
+
+function key(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}
+
+async function send(){
+  const inputEl = document.getElementById("input");
+  const text = inputEl.value.trim();
+  if(!text) return;
+  
+  const chat = document.getElementById("chat");
+  chat.innerHTML += `<div class="msg user"><div class="who">● YOU</div>${esc(text)}</div>`;
+  inputEl.value = "";
+  chat.scrollTop = chat.scrollHeight;
+
+  const typingId = "typing-" + Date.now();
+  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS PROCESSING...</div></div>`;
+  chat.scrollTop = chat.scrollHeight;
+
+  const aiResponse = await processOfflineLLM(text);
+  
+  document.getElementById(typingId).remove();
+  chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
+  chat.scrollTop = chat.scrollHeight;
+  
+  speak(aiResponse);
+}
+
+function clearChat(){
+  document.getElementById("chat").innerHTML="";
+  document.getElementById("coreStatus").textContent="CONVERSATION CLEARED.";
+}
+
+function exportChat(){
+  const text = document.getElementById("chat").innerText;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text],{type:"text/plain"}));
+  a.download = "batsy-conversation.txt";
+  a.click();
+}
+
+function esc(s){
+  return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))
+}
+
+const wave=document.getElementById("wave");
+for(let i=0;i<24;i++){
+  const b=document.createElement("i");
+  b.style.height=(6+Math.random()*20)+"px";
+  b.style.animationDelay=(Math.random()*.5)+"s";
+  wave.appendChild(b);
+}
+setInterval(()=>{
+  document.getElementById("cpu").textContent=(18+Math.random()*20|0)+"%";
+  document.getElementById("ram").textContent=(35+Math.random()*18|0)+"%";
+},1800);
+</script>
+</body>
+</html>
