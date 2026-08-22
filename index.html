@@ -140,83 +140,83 @@ if('serviceWorker' in navigator) {
   });
 }
 
-const canvas=document.getElementById("batCanvas"),ctx=canvas.getContext("2d");
-let W,H,DPR,particles=[],time=0;
+const canvas = document.getElementById("batCanvas"), ctx = canvas.getContext("2d");
+let W, H, DPR, particles = [], time = 0;
 
 function resize(){
-  const r=canvas.getBoundingClientRect(); DPR=Math.min(devicePixelRatio||1,2);
-  W=r.width;H=r.height;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+  const r = canvas.getBoundingClientRect(); DPR = Math.min(devicePixelRatio || 1, 2);
+  W = r.width; H = r.height; canvas.width = W * DPR; canvas.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   buildParticles();
 }
 
-function batInside(x,y){
-  const wing=Math.abs(x);
-  const body=Math.sqrt((x*x)/.045+(y*y)/.18)<1;
-  const ears=(Math.abs(x)<.22 && y<-.28 && y>-.48);
-  const upperWing=(wing>.18 && wing<.95 && y<.02 && y>-0.30-0.18*wing);
-  const lowerWing=(wing>.32 && wing<1.0 && y>-.02 && y<.38-0.25*wing);
-  const tail=(wing<.32 && y>.10 && y<.62);
-  const notches=(wing>.48 && wing<.75 && y>.08 && y<.28);
-  return (body||ears||upperWing||lowerWing||tail) && !notches;
+function batInside(x, y){
+  const wing = Math.abs(x);
+  const body = Math.sqrt((x * x) / .045 + (y * y) / .18) < 1;
+  const ears = (Math.abs(x) < .22 && y < -.28 && y > -.48);
+  const upperWing = (wing > .18 && wing < .95 && y < .02 && y > -0.30 - 0.18 * wing);
+  const lowerWing = (wing > .32 && wing < 1.0 && y > -.02 && y < .38 - 0.25 * wing);
+  const tail = (wing < .32 && y > .10 && y < .62);
+  const notches = (wing > .48 && wing < .75 && y > .08 && y < .28);
+  return (body || ears || upperWing || lowerWing || tail) && !notches;
 }
 
 function buildParticles(){
-  particles=[];
-  const count=Math.floor(Math.min(2600,Math.max(1000,W*H/170)));
-  for(let i=0;i<count;i++){
-    let x,y;
-    do{x=(Math.random()*2-1);y=(Math.random()*1.18-.58)}while(!batInside(x,y));
+  particles = [];
+  const count = Math.floor(Math.min(2600, Math.max(1000, W * H / 170)));
+  for(let i = 0; i < count; i++){
+    let x, y;
+    do{ x = (Math.random() * 2 - 1); y = (Math.random() * 1.18 - .58); } while(!batInside(x, y));
     particles.push({
-      x:x,y:y,ox:x,oy:y,
-      size:.45+Math.random()*1.5,
-      phase:Math.random()*Math.PI*2,
-      speed:.5+Math.random()*1.4,
-      orbit:Math.random()<.12
+      x: x, y: y, ox: x, oy: y,
+      size: .45 + Math.random() * 1.5,
+      phase: Math.random() * Math.PI * 2,
+      speed: .5 + Math.random() * 1.4,
+      orbit: Math.random() < .12
     });
   }
 }
 
 function drawCore(){
-  ctx.clearRect(0,0,W,H);
-  const cx=W/2,cy=H/2-15,scale=Math.min(W,H)*.39;
-  time+=.016;
+  ctx.clearRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2 - 15, scale = Math.min(W, H) * .39;
+  time += .016;
 
-  ctx.save();ctx.translate(cx,cy);
-  for(let r=scale*.82;r<scale*1.04;r+=scale*.055){
-    ctx.beginPath();ctx.arc(0,0,r,time*.04*(r/scale),Math.PI*2+time*.04*(r/scale));
-    ctx.strokeStyle="rgba(255,20,30,.15)";ctx.lineWidth=1;ctx.stroke();
+  ctx.save(); ctx.translate(cx, cy);
+  for(let r = scale * .82; r < scale * 1.04; r += scale * .055){
+    ctx.beginPath(); ctx.arc(0, 0, r, time * .04 * (r / scale), Math.PI * 2 + time * .04 * (r / scale));
+    ctx.strokeStyle = "rgba(255,20,30,.15)"; ctx.lineWidth = 1; ctx.stroke();
   }
-  for(let k=0;k<16;k++){
-    const a=time*.10+k*Math.PI*2/16;
-    const rr=scale*(.82+.08*Math.sin(time+k));
-    const x=Math.cos(a)*rr,y=Math.sin(a)*rr;
-    ctx.fillStyle="#ff2733";ctx.shadowBlur=10;ctx.shadowColor="#ff1724";
-    ctx.beginPath();ctx.arc(x,y,1.7,0,Math.PI*2);ctx.fill();
+  for(let k = 0; k < 16; k++){
+    const a = time * .10 + k * Math.PI * 2 / 16;
+    const rr = scale * (.82 + .08 * Math.sin(time + k));
+    const x = Math.cos(a) * rr, y = Math.sin(a) * rr;
+    ctx.fillStyle = "#ff2733"; ctx.shadowBlur = 10; ctx.shadowColor = "#ff1724";
+    ctx.beginPath(); ctx.arc(x, y, 1.7, 0, Math.PI * 2); ctx.fill();
   }
   ctx.restore();
 
-  ctx.save();ctx.translate(cx,cy);ctx.shadowColor="#ff1724";
+  ctx.save(); ctx.translate(cx, cy); ctx.shadowColor = "#ff1724";
   for(const p of particles){
-    let wave=Math.sin(time*p.speed+p.phase);
-    let px=p.ox+wave*.012,py=p.oy+Math.cos(time*.7+p.phase)*.010;
-    if(p.orbit){let a=time*.25+p.phase,rr=.85;px+=Math.cos(a)*rr*.02;py+=Math.sin(a)*rr*.02}
-    const x=px*scale,y=py*scale;
-    const glow=.45+.35*Math.sin(time*2+p.phase);
-    ctx.fillStyle=`rgba(255,${25+Math.floor(glow*35)},${35+Math.floor(glow*35)},${.62+glow*.38})`;
-    ctx.shadowBlur=5;ctx.beginPath();ctx.arc(x,y,p.size,0,Math.PI*2);ctx.fill();
+    let wave = Math.sin(time * p.speed + p.phase);
+    let px = p.ox + wave * .012, py = p.oy + Math.cos(time * .7 + p.phase) * .010;
+    if(p.orbit){ let a = time * .25 + p.phase, rr = .85; px += Math.cos(a) * rr * .02; py += Math.sin(a) * rr * .02; }
+    const x = px * scale, y = py * scale;
+    const glow = .45 + .35 * Math.sin(time * 2 + p.phase);
+    ctx.fillStyle = `rgba(255,${25 + Math.floor(glow * 35)},${35 + Math.floor(glow * 35)},${.62 + glow * .38})`;
+    ctx.shadowBlur = 5; ctx.beginPath(); ctx.arc(x, y, p.size, 0, Math.PI * 2); ctx.fill();
   }
-  ctx.shadowBlur=0;ctx.lineWidth=.35;
-  for(let i=0;i<particles.length;i+=4){
-    const a=particles[i],b=particles[(i+Math.floor(13+Math.sin(i)*10))%particles.length];
-    const ax=a.ox*scale,ay=a.oy*scale,bx=b.ox*scale,by=b.oy*scale;
-    const d=Math.hypot(ax-bx,ay-by);
-    if(d<scale*.18){ctx.strokeStyle=`rgba(255,30,40,${.12*(1-d/(scale*.18))})`;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke()}
+  ctx.shadowBlur = 0; ctx.lineWidth = .35;
+  for(let i = 0; i < particles.length; i += 4){
+    const a = particles[i], b = particles[(i + Math.floor(13 + Math.sin(i) * 10)) % particles.length];
+    const ax = a.ox * scale, ay = a.oy * scale, bx = b.ox * scale, by = b.oy * scale;
+    const d = Math.hypot(ax - bx, ay - by);
+    if(d < scale * .18){ ctx.strokeStyle = `rgba(255,30,40,${.12 * (1 - d / (scale * .18))})`; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); }
   }
   ctx.restore();
 
   requestAnimationFrame(drawCore);
 }
-window.addEventListener("resize",resize);resize();drawCore();
+window.addEventListener("resize", resize); resize(); drawCore();
 
 let batmanVoice = null;
 function initVoice() {
@@ -238,10 +238,7 @@ initVoice();
 function speak(text) {
     if (!("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
-    
-    // Smooth phonetic replacement so the voice engine says "Bat-see" seamlessly
     let spokenText = text.replace(/BATsY/gi, "Bat-see");
-    
     let u = new SpeechSynthesisUtterance(spokenText);
     if (batmanVoice) u.voice = batmanVoice;
     u.pitch = 0.4; 
@@ -265,7 +262,7 @@ async function processOfflineLLM(inputStr) {
     else if (query.includes("who are you") || query.includes("tell about yourself") || query.includes("what can you do")) {
         return "I am BATsY, your personal Batcomputer intelligence interface, Sir. Ready to assist with coding, math, data analysis, or general queries.";
     } 
-    // 3. Compliments, Praise & Casual Feedback ("good", "great", etc.)
+    // 3. Compliments, Praise & Casual Feedback
     else if (query === "good" || query === "great" || query.includes("good job") || query.includes("well done") || query.includes("great work") || query.includes("awesome") || query.includes("nice")) {
         return "Appreciate it, Sir. Glad I could help out. What's next on the agenda?";
     }
@@ -277,9 +274,8 @@ async function processOfflineLLM(inputStr) {
         return "Always a pleasure, Sir. Let me know if you need anything else.";
     }
 
-    // 5. Advanced Natural Language Math Solver (Catches "what is 2 + 2", "calc 5*5", etc.)
+    // 5. Natural Language Math Solver
     try {
-        // Strip common words and keep numbers and operators (+, -, *, /, .)
         let mathExpression = query.replace(/(what|is|calculate|calc|sol|solve|the|of|plus|minus|multiplied|divided|by)/g, "")
                                   .replace(/plus/g, "+")
                                   .replace(/minus/g, "-")
@@ -287,9 +283,7 @@ async function processOfflineLLM(inputStr) {
                                   .replace(/divided by/g, "/")
                                   .trim();
         
-        // If it contains valid math symbols and numbers
         if (/[\d]/.test(mathExpression) && /[+\-*/]/.test(mathExpression)) {
-            // Clean up any remaining letters
             mathExpression = mathExpression.replace(/[a-z]/g, "").trim();
             let mathResult = Function('"use strict";return (' + mathExpression + ')')();
             if (!isNaN(mathResult)) {
@@ -297,10 +291,10 @@ async function processOfflineLLM(inputStr) {
             }
         }
     } catch (e) {
-        // Not a valid math equation, proceed to Q&A
+        // Fallback to Q&A
     }
 
-    // 6. Universal Question & Answer Engine (Handles anything else concisely)
+    // 6. Universal Question & Answer Engine (Concise)
     try {
         let cleanQuery = inputStr.replace(/who is|what is|what are|tell me about|define|explain|how does|how do|can you tell me about|why is|where is/gi, "").trim();
         if (!cleanQuery) cleanQuery = inputStr;
@@ -329,3 +323,73 @@ async function processOfflineLLM(inputStr) {
 
     return `Analysis complete, Sir. I searched all frequencies for "${inputStr}", but no exact records were found. Try phrasing your query with specific keywords.`;
 }
+
+function tick(){
+  const d = new Date();
+  document.getElementById("clock").textContent = d.toLocaleTimeString([], {hour12:false});
+  document.getElementById("date").textContent = d.toLocaleDateString([], {weekday:"long",month:"long",day:"2-digit",year:"numeric"}).toUpperCase();
+}
+setInterval(tick,1000); tick();
+
+function nav(btn){
+  document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("coreStatus").textContent = btn.textContent.trim() + " MODULE READY.";
+}
+
+function key(e){ if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send(); } }
+
+async function send(){
+  const inputEl = document.getElementById("input");
+  const text = inputEl.value.trim();
+  if(!text) return;
+  
+  const chat = document.getElementById("chat");
+  chat.innerHTML += `<div class="msg user"><div class="who">● YOU</div>${esc(text)}</div>`;
+  inputEl.value = "";
+  chat.scrollTop = chat.scrollHeight;
+
+  const typingId = "typing-" + Date.now();
+  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS PROCESSING...</div></div>`;
+  chat.scrollTop = chat.scrollHeight;
+
+  const aiResponse = await processOfflineLLM(text);
+  
+  document.getElementById(typingId).remove();
+  chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
+  chat.scrollTop = chat.scrollHeight;
+  
+  speak(aiResponse);
+}
+
+function clearChat(){
+  document.getElementById("chat").innerHTML = "";
+  document.getElementById("coreStatus").textContent = "CONVERSATION CLEARED.";
+}
+
+function exportChat(){
+  const text = document.getElementById("chat").innerText;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type:"text/plain"}));
+  a.download = "batsy-conversation.txt";
+  a.click();
+}
+
+function esc(s){
+  return s.replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))
+}
+
+const wave = document.getElementById("wave");
+for(let i = 0; i < 24; i++){
+  const b = document.createElement("i");
+  b.style.height = (6 + Math.random() * 20) + "px";
+  b.style.animationDelay = (Math.random() * .5) + "s";
+  wave.appendChild(b);
+}
+setInterval(()=>{
+  document.getElementById("cpu").textContent = (18 + Math.random() * 20 | 0) + "%";
+  document.getElementById("ram").textContent = (35 + Math.random() * 18 | 0) + "%";
+},1800);
+</script>
+</body>
+</html>
