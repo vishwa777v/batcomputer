@@ -239,7 +239,7 @@ function speak(text) {
     if (!("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
     
-    // Smooth phonetic replacement so the voice engine says "Bat-see" seamlessly
+    // Smooth pronunciation string override
     let spokenText = text.replace(/BATsY/gi, "Bat-see");
     
     let u = new SpeechSynthesisUtterance(spokenText);
@@ -265,8 +265,8 @@ async function processOfflineLLM(inputStr) {
     else if (query.includes("who are you") || query.includes("tell about yourself") || query.includes("what can you do")) {
         return "I am BATsY, your personal Batcomputer intelligence interface, Sir. I'm here to assist you with development, analyze data, look up technical records, or answer any questions you throw my way.";
     } 
-    // 3. Compliments & Praise
-    else if (query.includes("good job") || query.includes("well done") || query.includes("great work") || query.includes("awesome") || query.includes("nice")) {
+    // 3. Compliments, Praise & Casual Feedback ("good", "great", etc.)
+    else if (query === "good" || query === "great" || query.includes("good job") || query.includes("well done") || query.includes("great work") || query.includes("awesome") || query.includes("nice")) {
         return "Appreciate it, Sir. Glad I could help out. What's next on the agenda?";
     }
     // 4. Status / Casual Talk
@@ -277,7 +277,7 @@ async function processOfflineLLM(inputStr) {
         return "Always a pleasure, Sir. Let me know if you need anything else.";
     }
 
-    // 5. Universal Question & Answer Engine (Handles ANY question correctly)
+    // 5. Universal Question & Answer Engine (Handles actual questions via Wikipedia)
     try {
         let cleanQuery = inputStr.replace(/who is|what is|what are|tell me about|define|explain|how does|how do|can you tell me about|why is|where is/gi, "").trim();
         if (!cleanQuery) cleanQuery = inputStr;
