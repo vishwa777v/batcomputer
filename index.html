@@ -239,7 +239,7 @@ function speak(text) {
     if (!("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
     
-    // Smooth pronunciation string override
+    // Smooth phonetic replacement so the voice engine says "Bat-see" seamlessly
     let spokenText = text.replace(/BATsY/gi, "Bat-see");
     
     let u = new SpeechSynthesisUtterance(spokenText);
@@ -263,7 +263,7 @@ async function processOfflineLLM(inputStr) {
     } 
     // 2. Personal / Identity Questions
     else if (query.includes("who are you") || query.includes("tell about yourself") || query.includes("what can you do")) {
-        return "I am BATsY, your personal Batcomputer intelligence interface, Sir. I'm here to assist you with development, analyze data, look up technical records, or answer any questions you throw my way.";
+        return "I am BATsY, your personal Batcomputer intelligence interface, Sir. Ready to assist with coding, math, data analysis, or general queries.";
     } 
     // 3. Compliments, Praise & Casual Feedback ("good", "great", etc.)
     else if (query === "good" || query === "great" || query.includes("good job") || query.includes("well done") || query.includes("great work") || query.includes("awesome") || query.includes("nice")) {
@@ -277,7 +277,19 @@ async function processOfflineLLM(inputStr) {
         return "Always a pleasure, Sir. Let me know if you need anything else.";
     }
 
-    // 5. Universal Question & Answer Engine (Handles actual questions via Wikipedia)
+    // 5. Secure Math Evaluator (Handles calculations like 2+2, 50*12 without errors)
+    if (/^[\d\+\-\*\/\.\(\)\s]+$/.test(inputStr) && /[+\-*/]/.test(inputStr)) {
+        try {
+            let mathResult = Function('"use strict";return (' + inputStr + ')')();
+            if (!isNaN(mathResult)) {
+                return `Calculation complete, Sir: ${inputStr} = ${mathResult}`;
+            }
+        } catch (e) {
+            // Fallback if expression is invalid
+        }
+    }
+
+    // 6. Universal Question & Answer Engine (Handles anything else concisely)
     try {
         let cleanQuery = inputStr.replace(/who is|what is|what are|tell me about|define|explain|how does|how do|can you tell me about|why is|where is/gi, "").trim();
         if (!cleanQuery) cleanQuery = inputStr;
@@ -294,9 +306,10 @@ async function processOfflineLLM(inputStr) {
             if (summaryRes.ok) {
                 let data = await summaryRes.json();
                 if (data && data.extract) {
+                    // Concise single-sentence answer format
                     let sentences = data.extract.match(/[^.!?]+[.!?]+/g);
-                    let answerText = sentences && sentences.length > 0 ? sentences.slice(0, 3).join(" ") : data.extract;
-                    return `Database record [${pageTitle}], Sir: ${answerText}`;
+                    let shortAnswer = sentences && sentences.length > 0 ? sentences[0] : data.extract;
+                    return `Database record [${pageTitle}], Sir: ${shortAnswer}`;
                 }
             }
         }
@@ -304,7 +317,7 @@ async function processOfflineLLM(inputStr) {
         console.log("Database query error:", error);
     }
 
-    return `Analysis complete, Sir. I searched all frequencies for "${inputStr}", but no exact records were found in the main database. Try phrasing your question with specific keywords.`;
+    return `Analysis complete, Sir. I searched all frequencies for "${inputStr}", but no exact records were found. Try phrasing your query with specific keywords.`;
 }
 
 function tick(){
