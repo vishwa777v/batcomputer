@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>BATCOMPUTER — B-A-T-S-Y AI</title>
+<title>BATCOMPUTER — BATsY AI</title>
 <style>
 *{box-sizing:border-box}
 :root{
@@ -82,7 +82,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
 
 <header>
   <div class="brand"><span class="mini-bat">🦇</span><div>BATCOMPUTER<small>SYSTEM ONLINE · v1.0.0</small></div></div>
-  <div class="header-center">— B-A-T-S-Y AI —</div>
+  <div class="header-center">— BATsY AI —</div>
   <div class="header-right"><b id="clock">00:00:00</b><span id="date">SYSTEM DATE</span></div>
 </header>
 
@@ -112,15 +112,15 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
   <div class="core-stage">
     <canvas id="batCanvas"></canvas>
     <div class="pulse" style="left:32%;top:27%"></div><div class="pulse" style="right:30%;top:35%;animation-delay:.5s"></div>
-    <div class="core-caption"><b>B-A-T-S-Y AI CORE</b><span id="coreStatus">I AM ALL SYSTEMS.</span></div>
+    <div class="core-caption"><b>BATsY AI CORE</b><span id="coreStatus">I AM ALL SYSTEMS.</span></div>
   </div>
 </section>
 
 <section class="right panel">
   <div class="panel-title">CONVERSATION</div>
   <div class="chat" id="chat">
-    <div class="msg user"><div class="who">● YOU</div>Hello B-A-T-S-Y</div>
-    <div class="msg"><div class="who">🦇 B-A-T-S-Y</div>Systems online, Sir. What are we working on today?</div>
+    <div class="msg user"><div class="who">● YOU</div>Hello BATsY</div>
+    <div class="msg"><div class="who">🦇 BATsY</div>Systems online, Sir. What are we working on today?</div>
   </div>
   <div class="chat-buttons"><button onclick="clearChat()">▣ CLEAR CHAT</button><button onclick="exportChat()">↗ EXPORT</button></div>
 </section>
@@ -239,8 +239,8 @@ function speak(text) {
     if (!("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
     
-    // Fix pronunciation by spelling out B-A-T-S-Y correctly for speech
-    let spokenText = text.replace(/BATsY/g, "B. A. T. S. Y.");
+    // Smooth phonetic replacement so the voice engine says "Bat-see" seamlessly
+    let spokenText = text.replace(/BATsY/gi, "Bat-see");
     
     let u = new SpeechSynthesisUtterance(spokenText);
     if (batmanVoice) u.voice = batmanVoice;
@@ -263,7 +263,7 @@ async function processOfflineLLM(inputStr) {
     } 
     // 2. Personal / Identity Questions
     else if (query.includes("who are you") || query.includes("tell about yourself") || query.includes("what can you do")) {
-        return "I am B-A-T-S-Y, your personal Batcomputer intelligence interface, Sir. I'm here to assist you with development, analyze data, look up technical records, or answer any questions you throw my way.";
+        return "I am BATsY, your personal Batcomputer intelligence interface, Sir. I'm here to assist you with development, analyze data, look up technical records, or answer any questions you throw my way.";
     } 
     // 3. Compliments & Praise
     else if (query.includes("good job") || query.includes("well done") || query.includes("great work") || query.includes("awesome") || query.includes("nice")) {
@@ -333,13 +333,13 @@ async function send(){
   chat.scrollTop = chat.scrollHeight;
 
   const typingId = "typing-" + Date.now();
-  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> B-A-T-S-Y IS PROCESSING...</div></div>`;
+  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS PROCESSING...</div></div>`;
   chat.scrollTop = chat.scrollHeight;
 
   const aiResponse = await processOfflineLLM(text);
   
   document.getElementById(typingId).remove();
-  chat.innerHTML += `<div class="msg"><div class="who">🦇 B-A-T-S-Y</div>${esc(aiResponse)}</div>`;
+  chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
   chat.scrollTop = chat.scrollHeight;
   
   speak(aiResponse);
