@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>BATCOMPUTER — BATsY AI</title>
+<title>BATCOMPUTER — B-A-T-S-Y AI</title>
 <style>
 *{box-sizing:border-box}
 :root{
@@ -48,7 +48,7 @@ header{grid-column:1/4;border-bottom:1px solid #3b0d12;display:flex;align-items:
 .core-label{text-align:center;margin-top:4px;color:var(--red);font-size:10px;letter-spacing:3px}
 .core-stage{position:absolute;inset:25px 0 0;display:grid;place-items:center;overflow:hidden}
 canvas{width:min(700px,100%);height:min(700px,100%);display:block}
-.core-caption{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:430px;text-align:center;border:1px solid #4d0d13;padding:12px;background:rgba(3,3,4,.72);clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%)}
+.core-caption{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:450px;text-align:center;border:1px solid #4d0d13;padding:12px;background:rgba(3,3,4,.72);clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%)}
 .core-caption b{display:block;color:var(--red);font-size:13px;letter-spacing:2px}.core-caption span{font-size:9px;color:#777;letter-spacing:1px}
 .pulse{position:absolute;width:9px;height:9px;border:1px solid var(--red);border-radius:50%;box-shadow:0 0 18px var(--red);animation:pulse 1.6s infinite}@keyframes pulse{50%{transform:scale(2.5);opacity:.2}}
 
@@ -82,7 +82,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
 
 <header>
   <div class="brand"><span class="mini-bat">🦇</span><div>BATCOMPUTER<small>SYSTEM ONLINE · v1.0.0</small></div></div>
-  <div class="header-center">— BATsY AI —</div>
+  <div class="header-center">— B-A-T-S-Y AI —</div>
   <div class="header-right"><b id="clock">00:00:00</b><span id="date">SYSTEM DATE</span></div>
 </header>
 
@@ -112,22 +112,22 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
   <div class="core-stage">
     <canvas id="batCanvas"></canvas>
     <div class="pulse" style="left:32%;top:27%"></div><div class="pulse" style="right:30%;top:35%;animation-delay:.5s"></div>
-    <div class="core-caption"><b>BATsY AI CORE</b><span id="coreStatus">I AM ALL SYSTEMS.</span></div>
+    <div class="core-caption"><b>B-A-T-S-Y AI CORE</b><span id="coreStatus">I AM ALL SYSTEMS.</span></div>
   </div>
 </section>
 
 <section class="right panel">
   <div class="panel-title">CONVERSATION</div>
   <div class="chat" id="chat">
-    <div class="msg user"><div class="who">● YOU</div>Hello BATsY</div>
-    <div class="msg"><div class="who">🦇 BATsY</div>Systems online, Sir. What are we working on today?</div>
+    <div class="msg user"><div class="who">● YOU</div>Hello B-A-T-S-Y</div>
+    <div class="msg"><div class="who">🦇 B-A-T-S-Y</div>Systems online, Sir. What are we working on today?</div>
   </div>
   <div class="chat-buttons"><button onclick="clearChat()">▣ CLEAR CHAT</button><button onclick="exportChat()">↗ EXPORT</button></div>
 </section>
 
 <section class="bottom">
   <div class="voice-box"><div class="wave" id="wave"></div><small>VOICE INPUT</small></div>
-  <div class="input-wrap"><textarea id="input" placeholder="Enter command..." rows="1" onkeydown="key(event)"></textarea></div>
+  <div class="input-wrap"><textarea id="input" placeholder="Enter command or question..." rows="1" onkeydown="key(event)"></textarea></div>
   <button class="action" onclick="send()" title="Send">➤</button>
   <button class="action stop" onclick="stopVoice()" title="Stop voice">■</button>
 </section>
@@ -238,7 +238,11 @@ initVoice();
 function speak(text) {
     if (!("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
-    let u = new SpeechSynthesisUtterance(text);
+    
+    // Fix pronunciation by spelling out B-A-T-S-Y correctly for speech
+    let spokenText = text.replace(/BATsY/g, "B. A. T. S. Y.");
+    
+    let u = new SpeechSynthesisUtterance(spokenText);
     if (batmanVoice) u.voice = batmanVoice;
     u.pitch = 0.4; 
     u.rate = 0.85; 
@@ -253,15 +257,19 @@ function stopVoice() {
 async function processOfflineLLM(inputStr) {
     const query = inputStr.toLowerCase().trim();
     
+    // 1. Friendly Greetings
     if (query.match(/^(hi|hello|hey|greetings|sup)/)) {
         return "Systems online, Sir. What are we working on today?";
     } 
+    // 2. Personal / Identity Questions
     else if (query.includes("who are you") || query.includes("tell about yourself") || query.includes("what can you do")) {
-        return "I am BATsY, your personal Batcomputer intelligence interface, Sir. I'm here to assist you with development, analyze data, look up technical records, or brainstorm ideas.";
+        return "I am B-A-T-S-Y, your personal Batcomputer intelligence interface, Sir. I'm here to assist you with development, analyze data, look up technical records, or answer any questions you throw my way.";
     } 
+    // 3. Compliments & Praise
     else if (query.includes("good job") || query.includes("well done") || query.includes("great work") || query.includes("awesome") || query.includes("nice")) {
         return "Appreciate it, Sir. Glad I could help out. What's next on the agenda?";
     }
+    // 4. Status / Casual Talk
     else if (query.includes("status") || query.includes("system") || query.includes("how are you")) {
         return "All systems running at peak efficiency, Sir. Ready for your command.";
     } 
@@ -269,12 +277,34 @@ async function processOfflineLLM(inputStr) {
         return "Always a pleasure, Sir. Let me know if you need anything else.";
     }
 
-    const conversationalFallbacks = [
-        `Analyzing that thought, Sir. Would you like to elaborate further?`,
-        `Frequencies are clear, Sir. How would you like to proceed with that?`,
-        `Understood, Sir. Standing by for your next instruction.`
-    ];
-    return conversationalFallbacks[Math.floor(Math.random() * conversationalFallbacks.length)];
+    // 5. Universal Question & Answer Engine (Handles ANY question correctly)
+    try {
+        let cleanQuery = inputStr.replace(/who is|what is|what are|tell me about|define|explain|how does|how do|can you tell me about|why is|where is/gi, "").trim();
+        if (!cleanQuery) cleanQuery = inputStr;
+
+        let searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
+        let searchRes = await fetch(searchUrl);
+        let searchData = await searchRes.json();
+
+        if (searchData && searchData.query && searchData.query.search.length > 0) {
+            let pageTitle = searchData.query.search[0].title;
+            let summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
+            let summaryRes = await fetch(summaryUrl);
+            
+            if (summaryRes.ok) {
+                let data = await summaryRes.json();
+                if (data && data.extract) {
+                    let sentences = data.extract.match(/[^.!?]+[.!?]+/g);
+                    let answerText = sentences && sentences.length > 0 ? sentences.slice(0, 3).join(" ") : data.extract;
+                    return `Database record [${pageTitle}], Sir: ${answerText}`;
+                }
+            }
+        }
+    } catch (error) {
+        console.log("Database query error:", error);
+    }
+
+    return `Analysis complete, Sir. I searched all frequencies for "${inputStr}", but no exact records were found in the main database. Try phrasing your question with specific keywords.`;
 }
 
 function tick(){
@@ -303,13 +333,13 @@ async function send(){
   chat.scrollTop = chat.scrollHeight;
 
   const typingId = "typing-" + Date.now();
-  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS PROCESSING...</div></div>`;
+  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> B-A-T-S-Y IS PROCESSING...</div></div>`;
   chat.scrollTop = chat.scrollHeight;
 
   const aiResponse = await processOfflineLLM(text);
   
   document.getElementById(typingId).remove();
-  chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
+  chat.innerHTML += `<div class="msg"><div class="who">🦇 B-A-T-S-Y</div>${esc(aiResponse)}</div>`;
   chat.scrollTop = chat.scrollHeight;
   
   speak(aiResponse);
