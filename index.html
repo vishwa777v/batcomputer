@@ -134,18 +134,14 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
 </div>
 
 <script>
-/* Service Worker Registration for Offline Use */
 if('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log("Batcomputer Offline Protocol Active."))
-      .catch((err) => console.log("Service Worker Failed:", err));
+    navigator.serviceWorker.register('./sw.js').catch((err) => console.log("Service Worker Failed:", err));
   });
 }
 
-/* Particle Bat Core Engine */
 const canvas=document.getElementById("batCanvas"),ctx=canvas.getContext("2d");
-let W,H,DPR,particles=[],mouse={x:0,y:0},time=0;
+let W,H,DPR,particles=[],time=0;
 
 function resize(){
   const r=canvas.getBoundingClientRect(); DPR=Math.min(devicePixelRatio||1,2);
@@ -222,7 +218,6 @@ function drawCore(){
 }
 window.addEventListener("resize",resize);resize();drawCore();
 
-/* Offline Voice & Heuristic Engine */
 let batmanVoice = null;
 function initVoice() {
     if (!("speechSynthesis" in window)) return;
@@ -245,11 +240,9 @@ function speak(text) {
     speechSynthesis.cancel();
     let u = new SpeechSynthesisUtterance(text);
     if (batmanVoice) u.voice = batmanVoice;
-    
     u.pitch = 0.4; 
     u.rate = 0.85; 
     u.volume = 1.0;
-    
     speechSynthesis.speak(u);
 }
 
@@ -257,8 +250,9 @@ function stopVoice() {
     if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
 
-function processOfflineLLM(inputStr) {
+async function processOfflineLLM(inputStr) {
     const query = inputStr.toLowerCase();
+    
     if (query.includes("status") || query.includes("system")) {
         return "All perimeter sectors secure. Mainframe operating at optimal capacity. No external anomalies detected.";
     } else if (query.includes("mission") || query.includes("objective")) {
@@ -266,10 +260,34 @@ function processOfflineLLM(inputStr) {
     } else if (query.includes("batmobile") || query.includes("vehicle")) {
         return "Batmobile telemetry is nominal. Armor integrity at one hundred percent. Remote link standing by.";
     } else if (query.includes("who are you") || query.includes("batsy")) {
-        return "I am the Batcomputer neural network interface. Operating completely offline and dedicated to your command.";
-    } else {
-        return `Analyzing heuristic logs for "${inputStr}". Local database query complete. No security risks found on the local mesh.`;
+        return "I am the Batcomputer neural network interface. Operating dedicated to your command.";
+    } else if (query.includes("hello") || query.includes("hi")) {
+        return "Systems active. State your objective, Sir.";
+    } else if (query.includes("ok") || query.includes("thanks") || query.includes("cool")) {
+        return "Understood. Maintaining watch over Gotham frequencies.";
     }
+
+    try {
+        let searchKeyword = inputStr.replace(/who is|what is|tell me about|define/gi, "").trim();
+        let wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchKeyword)}`;
+        let response = await fetch(wikiUrl);
+        if (response.ok) {
+            let data = await response.json();
+            if (data && data.extract) {
+                return `Database archives retrieved for "${searchKeyword}": ${data.extract}`;
+            }
+        }
+    } catch (error) {
+        console.log("Wikipedia query offline or failed.");
+    }
+
+    const randomFallbacks = [
+        `Processing input data for "${inputStr}". Encryption protocols hold steady.`,
+        `Frequencies checked. No active threats on current channels, Sir.`,
+        `Analyzing text parameters. Local database confirms normal operating parameters.`,
+        `Acknowledged. Standing by for your next command, Sir.`
+    ];
+    return randomFallbacks[Math.floor(Math.random() * randomFallbacks.length)];
 }
 
 function tick(){
@@ -298,18 +316,16 @@ async function send(){
   chat.scrollTop = chat.scrollHeight;
 
   const typingId = "typing-" + Date.now();
-  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS PROCESSING LOCALLY...</div></div>`;
+  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS ACCESSING ARCHIVES...</div></div>`;
   chat.scrollTop = chat.scrollHeight;
 
-  setTimeout(() => {
-    document.getElementById(typingId).remove();
-    const aiResponse = processOfflineLLM(text);
-    
-    chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
-    chat.scrollTop = chat.scrollHeight;
-    
-    speak(aiResponse);
-  }, 700);
+  const aiResponse = await processOfflineLLM(text);
+  
+  document.getElementById(typingId).remove();
+  chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
+  chat.scrollTop = chat.scrollHeight;
+  
+  speak(aiResponse);
 }
 
 function clearChat(){
