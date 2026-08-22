@@ -1,0 +1,15 @@
+{
+  "name": "Batcomputer - BATsY AI",
+  "short_name": "BatsyAI",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#020304",
+  "theme_color": "#ff1724",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/ios-filled/500/ff1724/batman.png",
+      "sizes": "500x500",
+      "type": "image/png"
+    }
+  ]
+}
