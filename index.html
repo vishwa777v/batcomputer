@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>BATCOMPUTER — BATsY AI</title>
+<title>BATCOMPUTER — BATsY AI (OFFLINE NEURAL CORE)</title>
 <style>
 *{box-sizing:border-box}
 :root{
@@ -48,8 +48,8 @@ header{grid-column:1/4;border-bottom:1px solid #3b0d12;display:flex;align-items:
 .core-label{text-align:center;margin-top:4px;color:var(--red);font-size:10px;letter-spacing:3px}
 .core-stage{position:absolute;inset:25px 0 0;display:grid;place-items:center;overflow:hidden}
 canvas{width:min(700px,100%);height:min(700px,100%);display:block}
-.core-caption{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:450px;text-align:center;border:1px solid #4d0d13;padding:12px;background:rgba(3,3,4,.72);clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%)}
-.core-caption b{display:block;color:var(--red);font-size:13px;letter-spacing:2px}.core-caption span{font-size:9px;color:#777;letter-spacing:1px}
+.core-caption{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:480px;text-align:center;border:1px solid #4d0d13;padding:12px;background:rgba(3,3,4,.72);clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%)}
+.core-caption b{display:block;color:var(--red);font-size:13px;letter-spacing:2px}.core-caption span{font-size:9px;color:#ff4048;letter-spacing:1px}
 .pulse{position:absolute;width:9px;height:9px;border:1px solid var(--red);border-radius:50%;box-shadow:0 0 18px var(--red);animation:pulse 1.6s infinite}@keyframes pulse{50%{transform:scale(2.5);opacity:.2}}
 
 /* ---------- RIGHT CHAT ---------- */
@@ -81,7 +81,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
 <div class="scan"></div><div class="grain"></div>
 
 <header>
-  <div class="brand"><span class="mini-bat">🦇</span><div>BATCOMPUTER<small>SYSTEM ONLINE · v1.0.0</small></div></div>
+  <div class="brand"><span class="mini-bat">🦇</span><div>BATCOMPUTER<small>SYSTEM ONLINE · v2.0 OFFLINE AI</small></div></div>
   <div class="header-center">— BATsY AI —</div>
   <div class="header-right"><b id="clock">00:00:00</b><span id="date">SYSTEM DATE</span></div>
 </header>
@@ -101,7 +101,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
     <div class="panel-title">SYSTEM STATUS</div>
     <div class="status-row"><span>CPU USAGE</span><b id="cpu">23%</b></div><div class="bar"><i id="cpub" style="width:23%"></i></div>
     <div class="status-row"><span>RAM USAGE</span><b id="ram">41%</b></div><div class="bar"><i id="ramb" style="width:41%"></i></div>
-    <div class="status-row"><span>NETWORK</span><b class="ok">ONLINE</b></div>
+    <div class="status-row"><span>AI ENGINE</span><b class="ok" id="engineStatus">INITIALIZING...</b></div>
     <div class="status-row"><span>BATTERY</span><b>100%</b></div>
     <div class="status-row"><span>SECURITY</span><b class="ok">ACTIVE</b></div>
   </div>
@@ -112,7 +112,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
   <div class="core-stage">
     <canvas id="batCanvas"></canvas>
     <div class="pulse" style="left:32%;top:27%"></div><div class="pulse" style="right:30%;top:35%;animation-delay:.5s"></div>
-    <div class="core-caption"><b>BATsY AI CORE</b><span id="coreStatus">I AM ALL SYSTEMS.</span></div>
+    <div class="core-caption"><b>BATsY AI CORE</b><span id="coreStatus">DOWNLOADING & LOADING LOCAL AI MODEL...</span></div>
   </div>
 </section>
 
@@ -120,25 +120,22 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
   <div class="panel-title">CONVERSATION</div>
   <div class="chat" id="chat">
     <div class="msg user"><div class="who">● YOU</div>Hello BATsY</div>
-    <div class="msg"><div class="who">🦇 BATsY</div>Systems online, Sir. What are we working on today?</div>
+    <div class="msg"><div class="who">🦇 BATsY</div>Systems online, Sir. Initializing local neural net...</div>
   </div>
   <div class="chat-buttons"><button onclick="clearChat()">▣ CLEAR CHAT</button><button onclick="exportChat()">↗ EXPORT</button></div>
 </section>
 
 <section class="bottom">
   <div class="voice-box"><div class="wave" id="wave"></div><small>VOICE INPUT</small></div>
-  <div class="input-wrap"><textarea id="input" placeholder="Enter command or question..." rows="1" onkeydown="key(event)"></textarea></div>
-  <button class="action" onclick="send()" title="Send">➤</button>
+  <div class="input-wrap"><textarea id="input" placeholder="Initializing AI model, please wait..." rows="1" onkeydown="key(event)" disabled></textarea></div>
+  <button class="action" onclick="send()" title="Send" id="sendBtn" disabled>➤</button>
   <button class="action stop" onclick="stopVoice()" title="Stop voice">■</button>
 </section>
 </div>
 
-<script>
-if('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((err) => console.log("Service Worker Failed:", err));
-  });
-}
+<!-- Import WebLLM Engine from CDN -->
+<script type="module">
+import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 
 const canvas = document.getElementById("batCanvas"), ctx = canvas.getContext("2d");
 let W, H, DPR, particles = [], time = 0;
@@ -247,127 +244,82 @@ function speak(text) {
     speechSynthesis.speak(u);
 }
 
-function stopVoice() {
+window.stopVoice = function() {
     if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
 
-async function processOfflineLLM(inputStr) {
-    const query = inputStr.toLowerCase().trim();
-    
-    // 1. Friendly Greetings
-    if (query.match(/^(hi|hello|hey|greetings|sup)/)) {
-        return "Systems online, Sir. What are we working on today?";
-    } 
-    // 2. Personal / Identity Questions
-    else if (query.includes("who are you") || query.includes("tell about yourself") || query.includes("what can you do")) {
-        return "I am BATsY, your personal Batcomputer intelligence interface, Sir. Ready to assist with coding, math, data analysis, or general queries.";
-    } 
-    // 3. Compliments, Praise & Casual Feedback
-    else if (query === "good" || query === "great" || query.includes("good job") || query.includes("well done") || query.includes("great work") || query.includes("awesome") || query.includes("nice")) {
-        return "Appreciate it, Sir. Glad I could help out. What's next on the agenda?";
-    }
-    // 4. Status / Casual Talk
-    else if (query.includes("status") || query.includes("system") || query.includes("how are you")) {
-        return "All systems running at peak efficiency, Sir. Ready for your command.";
-    } 
-    else if (query.includes("thanks") || query.includes("thank you")) {
-        return "Always a pleasure, Sir. Let me know if you need anything else.";
-    }
+// Initialize Local WebLLM Engine (Llama-3.2-1B is lightweight & fast)
+let engine = null;
+const selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
 
-    // 5. Natural Language Math Solver
+async function initAI() {
     try {
-        let mathExpression = query.replace(/(what|is|calculate|calc|sol|solve|the|of|plus|minus|multiplied|divided|by)/g, "")
-                                  .replace(/plus/g, "+")
-                                  .replace(/minus/g, "-")
-                                  .replace(/times|multiplied by/g, "*")
-                                  .replace(/divided by/g, "/")
-                                  .trim();
-        
-        if (/[\d]/.test(mathExpression) && /[+\-*/]/.test(mathExpression)) {
-            mathExpression = mathExpression.replace(/[a-z]/g, "").trim();
-            let mathResult = Function('"use strict";return (' + mathExpression + ')')();
-            if (!isNaN(mathResult)) {
-                return `Calculation complete, Sir: ${mathResult}`;
-            }
-        }
-    } catch (e) {
-        // Fallback to Q&A
-    }
-
-    // 6. Universal Question & Answer Engine (Concise)
-    try {
-        let cleanQuery = inputStr.replace(/who is|what is|what are|tell me about|define|explain|how does|how do|can you tell me about|why is|where is/gi, "").trim();
-        if (!cleanQuery) cleanQuery = inputStr;
-
-        let searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
-        let searchRes = await fetch(searchUrl);
-        let searchData = await searchRes.json();
-
-        if (searchData && searchData.query && searchData.query.search.length > 0) {
-            let pageTitle = searchData.query.search[0].title;
-            let summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
-            let summaryRes = await fetch(summaryUrl);
-            
-            if (summaryRes.ok) {
-                let data = await summaryRes.json();
-                if (data && data.extract) {
-                    let sentences = data.extract.match(/[^.!?]+[.!?]+/g);
-                    let shortAnswer = sentences && sentences.length > 0 ? sentences[0] : data.extract;
-                    return `Database record [${pageTitle}], Sir: ${shortAnswer}`;
+        engine = await webllm.CreateMLCEngine(
+            selectedModel,
+            {
+                initProgressCallback: (progress) => {
+                    document.getElementById("coreStatus").textContent = progress.text;
                 }
             }
-        }
-    } catch (error) {
-        console.log("Database query error:", error);
+        );
+        document.getElementById("coreStatus").textContent = "NEURAL CORE FULLY ONLINE.";
+        document.getElementById("engineStatus").textContent = "LOCAL GPU";
+        document.getElementById("engineStatus").style.color = "#40ff60";
+        document.getElementById("input").placeholder = "Enter command or question...";
+        document.getElementById("input").disabled = false;
+        document.getElementById("sendBtn").disabled = false;
+        
+        const chat = document.getElementById("chat");
+        chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>Local Neural Matrix loaded, Sir. I am ready for any query.</div>`;
+        chat.scrollTop = chat.scrollHeight;
+    } catch (err) {
+        console.error(err);
+        document.getElementById("coreStatus").textContent = "INIT FAILED. CHECK WEBGL/WEBGPU.";
     }
+}
+initAI();
 
-    return `Analysis complete, Sir. I searched all frequencies for "${inputStr}", but no exact records were found. Try phrasing your query with specific keywords.`;
+window.send = async function() {
+    const inputEl = document.getElementById("input");
+    const text = inputEl.value.trim();
+    if(!text || !engine) return;
+    
+    const chat = document.getElementById("chat");
+    chat.innerHTML += `<div class="msg user"><div class="who">● YOU</div>${esc(text)}</div>`;
+    inputEl.value = "";
+    chat.scrollTop = chat.scrollHeight;
+
+    const typingId = "typing-" + Date.now();
+    chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS COMPUTING...</div></div>`;
+    chat.scrollTop = chat.scrollHeight;
+
+    try {
+        const messages = [
+            { role: "system", content: "You are BATsY, an advanced Batcomputer intelligence interface serving Sir. Answer questions concisely, intelligently, and professionally with a slightly tactical demeanor." },
+            { role: "user", content: text }
+        ];
+
+        const reply = await engine.chat.completions.create({ messages });
+        let aiResponse = reply.choices[0].message.content;
+
+        document.getElementById(typingId).remove();
+        chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+        speak(aiResponse);
+    } catch (error) {
+        document.getElementById(typingId).remove();
+        chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>Processing error encountered, Sir.</div>`;
+    }
 }
 
-function tick(){
-  const d = new Date();
-  document.getElementById("clock").textContent = d.toLocaleTimeString([], {hour12:false});
-  document.getElementById("date").textContent = d.toLocaleDateString([], {weekday:"long",month:"long",day:"2-digit",year:"numeric"}).toUpperCase();
-}
-setInterval(tick,1000); tick();
+window.key = function(e){ if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); window.send(); } }
 
-function nav(btn){
-  document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  document.getElementById("coreStatus").textContent = btn.textContent.trim() + " MODULE READY.";
-}
-
-function key(e){ if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send(); } }
-
-async function send(){
-  const inputEl = document.getElementById("input");
-  const text = inputEl.value.trim();
-  if(!text) return;
-  
-  const chat = document.getElementById("chat");
-  chat.innerHTML += `<div class="msg user"><div class="who">● YOU</div>${esc(text)}</div>`;
-  inputEl.value = "";
-  chat.scrollTop = chat.scrollHeight;
-
-  const typingId = "typing-" + Date.now();
-  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS PROCESSING...</div></div>`;
-  chat.scrollTop = chat.scrollHeight;
-
-  const aiResponse = await processOfflineLLM(text);
-  
-  document.getElementById(typingId).remove();
-  chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
-  chat.scrollTop = chat.scrollHeight;
-  
-  speak(aiResponse);
-}
-
-function clearChat(){
+window.clearChat = function(){
   document.getElementById("chat").innerHTML = "";
   document.getElementById("coreStatus").textContent = "CONVERSATION CLEARED.";
 }
 
-function exportChat(){
+window.exportChat = function(){
   const text = document.getElementById("chat").innerText;
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([text], {type:"text/plain"}));
@@ -387,9 +339,22 @@ for(let i = 0; i < 24; i++){
   wave.appendChild(b);
 }
 setInterval(()=>{
-  document.getElementById("cpu").textContent = (18 + Math.random() * 20 | 0) + "%";
-  document.getElementById("ram").textContent = (35 + Math.random() * 18 | 0) + "%";
+  document.getElementById("cpu").textContent = (22 + Math.random() * 15 | 0) + "%";
+  document.getElementById("ram").textContent = (45 + Math.random() * 12 | 0) + "%";
 },1800);
+
+function tick(){
+  const d = new Date();
+  document.getElementById("clock").textContent = d.toLocaleTimeString([], {hour12:false});
+  document.getElementById("date").textContent = d.toLocaleDateString([], {weekday:"long",month:"long",day:"2-digit",year:"numeric"}).toUpperCase();
+}
+setInterval(tick,1000); tick();
+
+window.nav = function(btn){
+  document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("coreStatus").textContent = btn.textContent.trim() + " MODULE READY.";
+}
 </script>
 </body>
 </html>
