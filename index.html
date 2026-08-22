@@ -1,3 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BATCOMPUTER — BATsY AI</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#020304;--red:#ff1724;--red2:#b4000b;--dim:#571017;
+  --text:#f2f2f2;--muted:#777;
+}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+body{background:
+ radial-gradient(circle at 50% 48%,rgba(100,0,8,.12),transparent 34%),
+ linear-gradient(rgba(255,0,20,.018) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(255,0,20,.018) 1px,transparent 1px);
+ background-size:auto,40px 40px,40px 40px}
+
+/* ---------- HUD FRAME ---------- */
+.app{position:relative;width:100%;height:100%;padding:12px;display:grid;grid-template-columns:220px 1fr 285px;grid-template-rows:70px 1fr 125px;gap:10px}
+.app:before{content:"";position:absolute;inset:8px;border:1px solid #3a0b10;pointer-events:none}
+.corner{position:absolute;width:24px;height:24px;border-color:var(--red);z-index:10}
+.c1{top:8px;left:8px;border-top:3px solid;border-left:3px solid}.c2{top:8px;right:8px;border-top:3px solid;border-right:3px solid}
+.c3{bottom:8px;left:8px;border-bottom:3px solid;border-left:3px solid}.c4{bottom:8px;right:8px;border-bottom:3px solid;border-right:3px solid}
+
+header{grid-column:1/4;border-bottom:1px solid #3b0d12;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(3,3,4,.88);position:relative}
+.brand{display:flex;align-items:center;gap:12px;color:var(--red);font-size:23px;font-weight:800;letter-spacing:2px}
+.brand .mini-bat{font-size:28px;filter:drop-shadow(0 0 9px #ff172488)}
+.brand small{font-size:9px;color:#777;letter-spacing:1px;display:block}
+.header-center{position:absolute;left:50%;transform:translateX(-50%);font-size:22px;color:var(--red);letter-spacing:3px;font-weight:500}
+.header-right{text-align:right;color:#777;font-size:9px;letter-spacing:1px}.header-right b{display:block;color:var(--red);font-size:18px;letter-spacing:1px}
+
+.panel{border:1px solid #2b0b0f;background:linear-gradient(145deg,rgba(10,9,10,.94),rgba(2,3,4,.9));box-shadow:inset 0 0 30px rgba(255,0,15,.025);position:relative;overflow:hidden}
+.panel-title{color:var(--red);font-size:10px;letter-spacing:2px;font-weight:bold;padding:14px 15px;border-bottom:1px solid #250a0e}
+
+/* ---------- LEFT ---------- */
+.left{grid-column:1;grid-row:2/4;display:flex;flex-direction:column}
+.menu button{width:100%;border:0;border-bottom:1px solid #171719;background:transparent;color:#aaa;padding:12px 14px;text-align:left;font-size:11px;letter-spacing:1px;transition:.2s;cursor:pointer}
+.menu button:hover,.menu button.active{color:white;background:linear-gradient(90deg,#25070a,transparent);box-shadow:inset 3px 0 var(--red)}
+.menu button span{color:var(--red);width:28px;display:inline-block}
+.status{margin-top:auto;border-top:1px solid #250a0e}
+.status-row{display:flex;justify-content:space-between;padding:9px 14px;color:#666;font-size:9px;border-bottom:1px solid #111}.status-row b{color:#ddd}.status-row b.ok{color:#ff4048}
+.bar{height:3px;background:#21080b;margin:0 14px 8px}.bar i{display:block;height:100%;background:var(--red);box-shadow:0 0 8px var(--red)}
+
+/* ---------- CENTER ---------- */
+.center{grid-column:2;grid-row:2;position:relative;min-width:0}
+.core-label{text-align:center;margin-top:4px;color:var(--red);font-size:10px;letter-spacing:3px}
+.core-stage{position:absolute;inset:25px 0 0;display:grid;place-items:center;overflow:hidden}
+canvas{width:min(700px,100%);height:min(700px,100%);display:block}
+.core-caption{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:430px;text-align:center;border:1px solid #4d0d13;padding:12px;background:rgba(3,3,4,.72);clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%)}
+.core-caption b{display:block;color:var(--red);font-size:13px;letter-spacing:2px}.core-caption span{font-size:9px;color:#777;letter-spacing:1px}
+.pulse{position:absolute;width:9px;height:9px;border:1px solid var(--red);border-radius:50%;box-shadow:0 0 18px var(--red);animation:pulse 1.6s infinite}@keyframes pulse{50%{transform:scale(2.5);opacity:.2}}
+
+/* ---------- RIGHT CHAT ---------- */
+.right{grid-column:3;grid-row:2/4;display:flex;flex-direction:column;min-height:0}
+.chat{flex:1;overflow:auto;padding:12px}
+.msg{padding:10px;margin:8px 0;border:1px solid #201b1d;background:#0b0b0d;font-size:10px;line-height:1.55}
+.msg.user{border-color:#351014;background:#12080a}.msg .who{color:var(--red);font-size:9px;font-weight:bold;margin-bottom:5px}
+.typing{color:#777;font-size:9px}.typing i{display:inline-block;width:4px;height:4px;background:var(--red);border-radius:50%;margin:0 2px;animation:t .8s infinite}@keyframes t{50%{opacity:.2}}
+.chat-buttons{display:flex;gap:8px;padding:10px;border-top:1px solid #250a0e}.chat-buttons button{flex:1;background:#0b0b0d;border:1px solid #391016;color:#aaa;padding:9px;font-size:8px;cursor:pointer}.chat-buttons button:hover{color:white;border-color:var(--red)}
+
+/* ---------- BOTTOM ---------- */
+.bottom{grid-column:2;grid-row:3;display:grid;grid-template-columns:125px 1fr 130px 60px;gap:10px;padding:12px;border:1px solid #351016;background:#050506}
+.voice-box{border:1px solid #3b1016;display:flex;align-items:center;justify-content:center;position:relative}
+.voice-box small{position:absolute;bottom:5px;color:var(--red);font-size:7px;letter-spacing:1px}
+.wave{display:flex;gap:2px;align-items:center;height:35px}.wave i{display:block;width:2px;height:8px;background:var(--red);animation:w .65s infinite ease-in-out}.wave i:nth-child(2n){animation-delay:.1s}.wave i:nth-child(3n){animation-delay:.2s}@keyframes w{50%{height:30px}}
+.input-wrap{display:flex;border:1px solid #2c0d11;background:#09090b}.input-wrap textarea{width:100%;resize:none;background:transparent;border:0;outline:0;color:#ddd;padding:15px;font-size:12px}.input-wrap textarea::placeholder{color:#555}
+.action{border:1px solid #4a1017;background:#0b090a;color:var(--red);font-size:22px;cursor:pointer}.action:hover{background:#27070a}.stop{color:#ddd}
+
+/* ---------- FX ---------- */
+.scan{position:absolute;left:0;right:0;height:1px;background:rgba(255,0,20,.18);animation:scan 6s linear infinite;pointer-events:none;z-index:20}@keyframes scan{from{top:70px}to{top:100%}}
+.grain{position:fixed;inset:0;pointer-events:none;opacity:.08;background-image:radial-gradient(#fff .5px,transparent .5px);background-size:5px 5px;mix-blend-mode:screen}
+@media(max-width:1050px){.app{grid-template-columns:180px 1fr;grid-template-rows:60px 1fr 110px}.right{display:none}.bottom{grid-column:2}.header-center{font-size:15px}}
+@media(max-width:700px){.app{grid-template-columns:1fr;grid-template-rows:55px 1fr 105px}.left{display:none}.center{grid-column:1}.bottom{grid-column:1}.header-center{display:none}.header-right{display:none}.core-caption{width:70%}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
+<div class="scan"></div><div class="grain"></div>
+
+<header>
+  <div class="brand"><span class="mini-bat">🦇</span><div>BATCOMPUTER<small>SYSTEM ONLINE · v1.0.0</small></div></div>
+  <div class="header-center">— BATsY AI —</div>
+  <div class="header-right"><b id="clock">00:00:00</b><span id="date">SYSTEM DATE</span></div>
+</header>
+
+<section class="left panel">
+  <div class="panel-title">COMMAND CENTER</div>
+  <div class="menu">
+    <button class="active" onclick="nav(this)"><span>◈</span>CHAT</button>
+    <button onclick="nav(this)"><span>⌂</span>DASHBOARD</button>
+    <button onclick="nav(this)"><span>◇</span>MEMORY</button>
+    <button onclick="nav(this)"><span>⌁</span>ANALYSIS</button>
+    <button onclick="nav(this)"><span>⚒</span>TOOLS</button>
+    <button onclick="nav(this)"><span>⚙</span>SYSTEM</button>
+    <button onclick="nav(this)"><span>⚙</span>SETTINGS</button>
+  </div>
+  <div class="status">
+    <div class="panel-title">SYSTEM STATUS</div>
+    <div class="status-row"><span>CPU USAGE</span><b id="cpu">23%</b></div><div class="bar"><i id="cpub" style="width:23%"></i></div>
+    <div class="status-row"><span>RAM USAGE</span><b id="ram">41%</b></div><div class="bar"><i id="ramb" style="width:41%"></i></div>
+    <div class="status-row"><span>NETWORK</span><b class="ok">ONLINE</b></div>
+    <div class="status-row"><span>BATTERY</span><b>100%</b></div>
+    <div class="status-row"><span>SECURITY</span><b class="ok">ACTIVE</b></div>
+  </div>
+</section>
+
+<section class="center panel">
+  <div class="core-label">NEURAL CORE · LIVE PARTICLE MATRIX</div>
+  <div class="core-stage">
+    <canvas id="batCanvas"></canvas>
+    <div class="pulse" style="left:32%;top:27%"></div><div class="pulse" style="right:30%;top:35%;animation-delay:.5s"></div>
+    <div class="core-caption"><b>BATsY AI CORE</b><span id="coreStatus">I AM ALL SYSTEMS.</span></div>
+  </div>
+</section>
+
+<section class="right panel">
+  <div class="panel-title">CONVERSATION</div>
+  <div class="chat" id="chat">
+    <div class="msg user"><div class="who">● YOU</div>Hello BATsY</div>
+    <div class="msg"><div class="who">🦇 BATsY</div>Systems online. What are we working on today, Sir?</div>
+  </div>
+  <div class="chat-buttons"><button onclick="clearChat()">▣ CLEAR CHAT</button><button onclick="exportChat()">↗ EXPORT</button></div>
+</section>
+
+<section class="bottom">
+  <div class="voice-box"><div class="wave" id="wave"></div><small>VOICE INPUT</small></div>
+  <div class="input-wrap"><textarea id="input" placeholder="Enter command..." rows="1" onkeydown="key(event)"></textarea></div>
+  <button class="action" onclick="send()" title="Send">➤</button>
+  <button class="action stop" onclick="stopVoice()" title="Stop voice">■</button>
+</section>
+</div>
+
+<script>
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => console.log("Service Worker Failed:", err));
+  });
+}
+
+const canvas=document.getElementById("batCanvas"),ctx=canvas.getContext("2d");
+let W,H,DPR,particles=[],time=0;
+
+function resize(){
+  const r=canvas.getBoundingClientRect(); DPR=Math.min(devicePixelRatio||1,2);
+  W=r.width;H=r.height;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+  buildParticles();
+}
+
+function batInside(x,y){
+  const wing=Math.abs(x);
+  const body=Math.sqrt((x*x)/.045+(y*y)/.18)<1;
+  const ears=(Math.abs(x)<.22 && y<-.28 && y>-.48);
+  const upperWing=(wing>.18 && wing<.95 && y<.02 && y>-0.30-0.18*wing);
+  const lowerWing=(wing>.32 && wing<1.0 && y>-.02 && y<.38-0.25*wing);
+  const tail=(wing<.32 && y>.10 && y<.62);
+  const notches=(wing>.48 && wing<.75 && y>.08 && y<.28);
+  return (body||ears||upperWing||lowerWing||tail) && !notches;
+}
+
+function buildParticles(){
+  particles=[];
+  const count=Math.floor(Math.min(2600,Math.max(1000,W*H/170)));
+  for(let i=0;i<count;i++){
+    let x,y;
+    do{x=(Math.random()*2-1);y=(Math.random()*1.18-.58)}while(!batInside(x,y));
+    particles.push({
+      x:x,y:y,ox:x,oy:y,
+      size:.45+Math.random()*1.5,
+      phase:Math.random()*Math.PI*2,
+      speed:.5+Math.random()*1.4,
+      orbit:Math.random()<.12
+    });
+  }
+}
+
+function drawCore(){
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H/2-15,scale=Math.min(W,H)*.39;
+  time+=.016;
+
+  ctx.save();ctx.translate(cx,cy);
+  for(let r=scale*.82;r<scale*1.04;r+=scale*.055){
+    ctx.beginPath();ctx.arc(0,0,r,time*.04*(r/scale),Math.PI*2+time*.04*(r/scale));
+    ctx.strokeStyle="rgba(255,20,30,.15)";ctx.lineWidth=1;ctx.stroke();
+  }
+  for(let k=0;k<16;k++){
+    const a=time*.10+k*Math.PI*2/16;
+    const rr=scale*(.82+.08*Math.sin(time+k));
+    const x=Math.cos(a)*rr,y=Math.sin(a)*rr;
+    ctx.fillStyle="#ff2733";ctx.shadowBlur=10;ctx.shadowColor="#ff1724";
+    ctx.beginPath();ctx.arc(x,y,1.7,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.save();ctx.translate(cx,cy);ctx.shadowColor="#ff1724";
+  for(const p of particles){
+    let wave=Math.sin(time*p.speed+p.phase);
+    let px=p.ox+wave*.012,py=p.oy+Math.cos(time*.7+p.phase)*.010;
+    if(p.orbit){let a=time*.25+p.phase,rr=.85;px+=Math.cos(a)*rr*.02;py+=Math.sin(a)*rr*.02}
+    const x=px*scale,y=py*scale;
+    const glow=.45+.35*Math.sin(time*2+p.phase);
+    ctx.fillStyle=`rgba(255,${25+Math.floor(glow*35)},${35+Math.floor(glow*35)},${.62+glow*.38})`;
+    ctx.shadowBlur=5;ctx.beginPath();ctx.arc(x,y,p.size,0,Math.PI*2);ctx.fill();
+  }
+  ctx.shadowBlur=0;ctx.lineWidth=.35;
+  for(let i=0;i<particles.length;i+=4){
+    const a=particles[i],b=particles[(i+Math.floor(13+Math.sin(i)*10))%particles.length];
+    const ax=a.ox*scale,ay=a.oy*scale,bx=b.ox*scale,by=b.oy*scale;
+    const d=Math.hypot(ax-bx,ay-by);
+    if(d<scale*.18){ctx.strokeStyle=`rgba(255,30,40,${.12*(1-d/(scale*.18))})`;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke()}
+  }
+  ctx.restore();
+
+  requestAnimationFrame(drawCore);
+}
+window.addEventListener("resize",resize);resize();drawCore();
+
+let batmanVoice = null;
+function initVoice() {
+    if (!("speechSynthesis" in window)) return;
+    const updateVoices = () => {
+        const voices = speechSynthesis.getVoices();
+        batmanVoice = voices.find(v => 
+            (v.name.includes("Male") || v.name.includes("David") || v.name.includes("Google UK English Male") || v.name.includes("Mark")) && 
+            v.lang.startsWith("en")
+        ) || voices[0];
+    };
+    updateVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = updateVoices;
+    }
+}
+initVoice();
+
+function speak(text) {
+    if (!("speechSynthesis" in window)) return;
+    speechSynthesis.cancel();
+    let u = new SpeechSynthesisUtterance(text);
+    if (batmanVoice) u.voice = batmanVoice;
+    u.pitch = 0.4; 
+    u.rate = 0.85; 
+    u.volume = 1.0;
+    speechSynthesis.speak(u);
+}
+
+function stopVoice() {
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+}
+
 async function processOfflineLLM(inputStr) {
     const query = inputStr.toLowerCase().trim();
     
@@ -43,3 +295,73 @@ async function processOfflineLLM(inputStr) {
     ];
     return conversationalFallbacks[Math.floor(Math.random() * conversationalFallbacks.length)];
 }
+
+function tick(){
+  const d=new Date();
+  document.getElementById("clock").textContent=d.toLocaleTimeString([], {hour12:false});
+  document.getElementById("date").textContent=d.toLocaleDateString([], {weekday:"long",month:"long",day:"2-digit",year:"numeric"}).toUpperCase();
+}
+setInterval(tick,1000);tick();
+
+function nav(btn){
+  document.querySelectorAll(".menu button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("coreStatus").textContent=btn.textContent.trim()+" MODULE READY.";
+}
+
+function key(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}
+
+async function send(){
+  const inputEl = document.getElementById("input");
+  const text = inputEl.value.trim();
+  if(!text) return;
+  
+  const chat = document.getElementById("chat");
+  chat.innerHTML += `<div class="msg user"><div class="who">● YOU</div>${esc(text)}</div>`;
+  inputEl.value = "";
+  chat.scrollTop = chat.scrollHeight;
+
+  const typingId = "typing-" + Date.now();
+  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS PROCESSING...</div></div>`;
+  chat.scrollTop = chat.scrollHeight;
+
+  const aiResponse = await processOfflineLLM(text);
+  
+  document.getElementById(typingId).remove();
+  chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
+  chat.scrollTop = chat.scrollHeight;
+  
+  speak(aiResponse);
+}
+
+function clearChat(){
+  document.getElementById("chat").innerHTML="";
+  document.getElementById("coreStatus").textContent="CONVERSATION CLEARED.";
+}
+
+function exportChat(){
+  const text = document.getElementById("chat").innerText;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text],{type:"text/plain"}));
+  a.download = "batsy-conversation.txt";
+  a.click();
+}
+
+function esc(s){
+  return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))
+}
+
+const wave=document.getElementById("wave");
+for(let i=0;i<24;i++){
+  const b=document.createElement("i");
+  b.style.height=(6+Math.random()*20)+"px";
+  b.style.animationDelay=(Math.random()*.5)+"s";
+  wave.appendChild(b);
+}
+setInterval(()=>{
+  document.getElementById("cpu").textContent=(18+Math.random()*20|0)+"%";
+  document.getElementById("ram").textContent=(35+Math.random()*18|0)+"%";
+},1800);
+</script>
+</body>
+</html>
