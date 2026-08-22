@@ -253,26 +253,26 @@ function stopVoice() {
 async function processOfflineLLM(inputStr) {
     const query = inputStr.toLowerCase().trim();
     
-    // 1. Friendly Greetings & Conversational Openers
+    // 1. Friendly Greetings
     if (query.match(/^(hi|hello|hey|greetings|sup)/)) {
-        return "Systems online. What are we working on today, Sir?";
+        return "Systems online, Sir. What are we working on today?";
     } 
     // 2. Personal / Identity Questions
     else if (query.includes("who are you") || query.includes("tell about yourself") || query.includes("what can you do")) {
-        return "I'm BATsY, your personal Batcomputer intelligence interface. I can assist you with coding, analyze data, look up information across the web, or just talk through ideas with you. How can I help?";
+        return "I am BATsY, your personal Batcomputer intelligence interface, Sir. I'm here to assist you with development, analyze data, look up technical records, or brainstorm ideas.";
     } 
-    // 3. Status & System Checks
+    // 3. Compliments & Praise
+    else if (query.includes("good job") || query.includes("well done") || query.includes("great work") || query.includes("awesome") || query.includes("nice")) {
+        return "Appreciate it, Sir. Glad I could help out. What's next on the agenda?";
+    }
+    // 4. Status / Casual Talk
     else if (query.includes("status") || query.includes("system") || query.includes("how are you")) {
-        return "All systems are running at peak efficiency. Ready for your command.";
-    } 
-    // 4. Casual Talk / Appreciation
-    else if (query.includes("thanks") || query.includes("thank you")) {
+        return "All systems running at peak efficiency, Sir. Ready for your command.";
+    } else if (query.includes("thanks") || query.includes("thank you")) {
         return "Always a pleasure, Sir. Let me know if you need anything else.";
-    } else if (query.includes("cool") || query.includes("awesome") || query.includes("great")) {
-        return "Glad to hear it. Keeping operations running smoothly.";
     }
 
-    // 5. Dynamic Wikipedia / General Knowledge Lookup
+    // 5. Shortened Wikipedia Summary for Knowledge Queries
     try {
         let searchKeyword = inputStr.replace(/who is|what is|tell me about|define|explain/gi, "").trim();
         let wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchKeyword)}`;
@@ -280,6 +280,10 @@ async function processOfflineLLM(inputStr) {
         if (response.ok) {
             let data = await response.json();
             if (data && data.extract) {
+                let sentences = data.extract.match(/[^.!?]+[.!?]+/g);
+                if (sentences && sentences.length > 0) {
+                    return sentences.slice(0, 2).join(" ");
+                }
                 return data.extract;
             }
         }
@@ -287,11 +291,11 @@ async function processOfflineLLM(inputStr) {
         console.log("Wikipedia query offline or failed.");
     }
 
-    // 6. Natural Fallback for Open-Ended Thoughts
+    // 6. Natural Conversational Fallback
     const conversationalFallbacks = [
-        `I'm analyzing what you mean by "${inputStr}". Want to elaborate a bit more on that?`,
-        `That's an interesting point regarding "${inputStr}". How would you like to proceed with it?`,
-        `Frequencies are clear, and I'm tracking your input. Tell me more, Sir.`
+        `Analyzing input parameters for "${inputStr}", Sir. Would you like to elaborate further?`,
+        `Frequencies are clear, Sir. How would you like to proceed with that?`,
+        `Understood, Sir. Standing by for your next instruction regarding "${inputStr}".`
     ];
     return conversationalFallbacks[Math.floor(Math.random() * conversationalFallbacks.length)];
 }
