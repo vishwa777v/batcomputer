@@ -48,7 +48,7 @@ header{grid-column:1/4;border-bottom:1px solid #3b0d12;display:flex;align-items:
 .core-label{text-align:center;margin-top:4px;color:var(--red);font-size:10px;letter-spacing:3px}
 .core-stage{position:absolute;inset:25px 0 0;display:grid;place-items:center;overflow:hidden}
 canvas{width:min(700px,100%);height:min(700px,100%);display:block}
-.core-caption{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:450px;text-align:center;border:1px solid #4d0d13;padding:12px;background:rgba(3,3,4,.72);clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%)}
+.core-caption{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:480px;text-align:center;border:1px solid #4d0d13;padding:12px;background:rgba(3,3,4,.72);clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%)}
 .core-caption b{display:block;color:var(--red);font-size:13px;letter-spacing:2px}.core-caption span{font-size:9px;color:#777;letter-spacing:1px}
 .pulse{position:absolute;width:9px;height:9px;border:1px solid var(--red);border-radius:50%;box-shadow:0 0 18px var(--red);animation:pulse 1.6s infinite}@keyframes pulse{50%{transform:scale(2.5);opacity:.2}}
 
@@ -81,7 +81,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
 <div class="scan"></div><div class="grain"></div>
 
 <header>
-  <div class="brand"><span class="mini-bat">🦇</span><div>BATCOMPUTER<small>SYSTEM ONLINE · v1.0.0</small></div></div>
+  <div class="brand"><span class="mini-bat">🦇</span><div>BATCOMPUTER<small>SYSTEM ONLINE · GEMINI API CONNECTED</small></div></div>
   <div class="header-center">— BATsY AI —</div>
   <div class="header-right"><b id="clock">00:00:00</b><span id="date">SYSTEM DATE</span></div>
 </header>
@@ -101,7 +101,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
     <div class="panel-title">SYSTEM STATUS</div>
     <div class="status-row"><span>CPU USAGE</span><b id="cpu">23%</b></div><div class="bar"><i id="cpub" style="width:23%"></i></div>
     <div class="status-row"><span>RAM USAGE</span><b id="ram">41%</b></div><div class="bar"><i id="ramb" style="width:41%"></i></div>
-    <div class="status-row"><span>NETWORK</span><b class="ok">ONLINE</b></div>
+    <div class="status-row"><span>NEURAL API</span><b class="ok">CONNECTED</b></div>
     <div class="status-row"><span>BATTERY</span><b>100%</b></div>
     <div class="status-row"><span>SECURITY</span><b class="ok">ACTIVE</b></div>
   </div>
@@ -112,7 +112,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
   <div class="core-stage">
     <canvas id="batCanvas"></canvas>
     <div class="pulse" style="left:32%;top:27%"></div><div class="pulse" style="right:30%;top:35%;animation-delay:.5s"></div>
-    <div class="core-caption"><b>BATsY AI CORE</b><span id="coreStatus">SYSTEMS FULLY OPERATIONAL.</span></div>
+    <div class="core-caption"><b>BATsY AI CORE</b><span id="coreStatus">API READY. ASK ANY QUESTION.</span></div>
   </div>
 </section>
 
@@ -120,7 +120,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
   <div class="panel-title">CONVERSATION</div>
   <div class="chat" id="chat">
     <div class="msg user"><div class="who">● YOU</div>Hello BATsY</div>
-    <div class="msg"><div class="who">🦇 BATsY</div>Systems online, Sir. What are we working on today?</div>
+    <div class="msg"><div class="who">🦇 BATsY</div>Systems online, Sir. Neural API linked. What are we analyzing today?</div>
   </div>
   <div class="chat-buttons"><button onclick="clearChat()">▣ CLEAR CHAT</button><button onclick="exportChat()">↗ EXPORT</button></div>
 </section>
@@ -134,6 +134,7 @@ canvas{width:min(700px,100%);height:min(700px,100%);display:block}
 </div>
 
 <script>
+// --- CANVAS ANIMATION ---
 const canvas = document.getElementById("batCanvas"), ctx = canvas.getContext("2d");
 let W, H, DPR, particles = [], time = 0;
 
@@ -212,6 +213,7 @@ function drawCore(){
 }
 window.addEventListener("resize", resize); resize(); drawCore();
 
+// --- VOICE SYNTHESIS ---
 let batmanVoice = null;
 function initVoice() {
     if (!("speechSynthesis" in window)) return;
@@ -232,11 +234,12 @@ initVoice();
 function speak(text) {
     if (!("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
-    let spokenText = text.replace(/BATsY/gi, "Bat-see");
-    let u = new SpeechSynthesisUtterance(spokenText);
+    // Clean markdown/symbols for natural reading
+    let cleanText = text.replace(/[*_#`[\]()]/g, "").replace(/BATsY/gi, "Bat-see");
+    let u = new SpeechSynthesisUtterance(cleanText);
     if (batmanVoice) u.voice = batmanVoice;
     u.pitch = 0.4; 
-    u.rate = 0.85; 
+    u.rate = 0.88; 
     u.volume = 1.0;
     speechSynthesis.speak(u);
 }
@@ -245,92 +248,75 @@ function stopVoice() {
     if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
 
-async function processOfflineLLM(inputStr) {
-    const query = inputStr.toLowerCase().trim();
+// --- GEMINI API INTEGRATION ---
+// PASTE YOUR GEMINI API KEY BELOW:
+const API_KEY = "YOUR_GEMIN_API_KEY_HERE";
+
+async function queryGeminiAPI(promptText) {
+    if (API_KEY === "YOUR_GEMIN_API_KEY_HERE" || !API_KEY) {
+        return "API key missing, Sir. Please insert your Gemini API key into the script code.";
+    }
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
     
-    // 1. Greetings & Social
-    if (query.match(/^(hi|hello|hey|greetings|sup)/)) {
-        return "Systems online, Sir. What are we working on today?";
-    } 
-    else if (query.includes("who are you") || query.includes("tell about yourself") || query.includes("what can you do")) {
-        return "I am BATsY, your personal Batcomputer intelligence interface, Sir. Ready to assist with coding, math, data analysis, or general queries.";
-    } 
-    else if (query === "good" || query === "great" || query.includes("good job") || query.includes("well done") || query.includes("great work") || query.includes("awesome") || query.includes("nice")) {
-        return "Appreciate it, Sir. Glad I could help out. What's next on the agenda?";
-    }
-    else if (query.includes("status") || query.includes("system") || query.includes("how are you")) {
-        return "All systems running at peak efficiency, Sir. Ready for your command.";
-    } 
-    else if (query.includes("thanks") || query.includes("thank you")) {
-        return "Always a pleasure, Sir. Let me know if you need anything else.";
-    }
-
-    // 2. Math Calculations
-    try {
-        let mathExpression = query.replace(/(what|is|calculate|calc|sol|solve|the|of|plus|minus|multiplied|divided|by)/g, "")
-                                  .replace(/plus/g, "+")
-                                  .replace(/minus/g, "-")
-                                  .replace(/times|multiplied by/g, "*")
-                                  .replace(/divided by/g, "/")
-                                  .trim();
-        
-        if (/[\d]/.test(mathExpression) && /[+\-*/]/.test(mathExpression)) {
-            mathExpression = mathExpression.replace(/[a-z]/g, "").trim();
-            let mathResult = Function('"use strict";return (' + mathExpression + ')')();
-            if (!isNaN(mathResult)) {
-                return `Calculation complete, Sir: ${mathResult}`;
+    const payload = {
+        contents: [
+            {
+                role: "user",
+                parts: [
+                    { text: "You are BATsY, an advanced AI intelligence interface serving Sir inside the Batcomputer. Answer questions naturally, accurately, and professionally with a tactical, sharp demeanor. Keep text clear and well-formatted." },
+                    { text: promptText }
+                ]
             }
+        ]
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
         }
-    } catch (e) {}
 
-    // 3. Expanded Smart Knowledge Base (Instant & Offline)
-    if (query.includes("javascript") || query.includes("js")) {
-        return "JavaScript is a lightweight, interpreted, or JIT-compiled programming language with first-class functions, widely used for web development.";
-    }
-    if (query.includes("python")) {
-        return "Python is a high-level, general-purpose programming language emphasizing code readability with its notable use of significant whitespace.";
-    }
-    if (query.includes("html")) {
-        return "HTML stands for HyperText Markup Language, the standard markup language for documents designed to be displayed in a web browser.";
-    }
-    if (query.includes("css")) {
-        return "CSS stands for Cascading Style Sheets, a style sheet language used for describing the presentation of a document written in HTML.";
-    }
-    if (query.includes("artificial intelligence") || query.includes("ai")) {
-        return "Artificial intelligence is the simulation of human intelligence processes by machines, especially computer systems.";
-    }
-    if (query.includes("batman") || query.includes("bruce wayne")) {
-        return "Batman is a superhero appearing in American comic books published by DC Comics, operating out of the Batcave with the Batcomputer.";
-    }
-
-    // 4. Fallback Wikipedia Engine
-    try {
-        let cleanQuery = inputStr.replace(/who is|what is|what are|tell me about|define|explain|how does|how do|can you tell me about|why is|where is/gi, "").trim();
-        if (!cleanQuery) cleanQuery = inputStr;
-
-        let searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
-        let searchRes = await fetch(searchUrl);
-        let searchData = await searchRes.json();
-
-        if (searchData && searchData.query && searchData.query.search.length > 0) {
-            let pageTitle = searchData.query.search[0].title;
-            let summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
-            let summaryRes = await fetch(summaryUrl);
-            
-            if (summaryRes.ok) {
-                let data = await summaryRes.json();
-                if (data && data.extract) {
-                    let sentences = data.extract.match(/[^.!?]+[.!?]+/g);
-                    let shortAnswer = sentences && sentences.length > 0 ? sentences[0] : data.extract;
-                    return `Database record [${pageTitle}], Sir: ${shortAnswer}`;
-                }
-            }
+        const data = await response.json();
+        const candidate = data.candidates?.[0];
+        if (candidate && candidate.content?.parts?.[0]?.text) {
+            return candidate.content.parts[0].text;
+        } else {
+            return "No valid response received from the neural network, Sir.";
         }
     } catch (error) {
-        console.log("Database query error:", error);
+        console.error("Gemini API Error:", error);
+        return "Communication error with the neural network, Sir. Check network connection or API key.";
     }
+}
 
-    return `Analysis complete, Sir. I searched all frequencies for "${inputStr}", but no exact records were found. Try phrasing your query with specific keywords.`;
+// --- CHAT INTERACTION ---
+async function send(){
+  const inputEl = document.getElementById("input");
+  const text = inputEl.value.trim();
+  if(!text) return;
+  
+  const chat = document.getElementById("chat");
+  chat.innerHTML += `<div class="msg user"><div class="who">● YOU</div>${esc(text)}</div>`;
+  inputEl.value = "";
+  chat.scrollTop = chat.scrollHeight;
+
+  const typingId = "typing-" + Date.now();
+  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS PROCESSING...</div></div>`;
+  chat.scrollTop = chat.scrollHeight;
+
+  const aiResponse = await queryGeminiAPI(text);
+  
+  document.getElementById(typingId).remove();
+  chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
+  chat.scrollTop = chat.scrollHeight;
+  
+  speak(aiResponse);
 }
 
 function tick(){
@@ -347,29 +333,6 @@ function nav(btn){
 }
 
 function key(e){ if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send(); } }
-
-async function send(){
-  const inputEl = document.getElementById("input");
-  const text = inputEl.value.trim();
-  if(!text) return;
-  
-  const chat = document.getElementById("chat");
-  chat.innerHTML += `<div class="msg user"><div class="who">● YOU</div>${esc(text)}</div>`;
-  inputEl.value = "";
-  chat.scrollTop = chat.scrollHeight;
-
-  const typingId = "typing-" + Date.now();
-  chat.innerHTML += `<div class="msg" id="${typingId}"><div class="typing"><i></i><i></i><i></i> BATsY IS PROCESSING...</div></div>`;
-  chat.scrollTop = chat.scrollHeight;
-
-  const aiResponse = await processOfflineLLM(text);
-  
-  document.getElementById(typingId).remove();
-  chat.innerHTML += `<div class="msg"><div class="who">🦇 BATsY</div>${esc(aiResponse)}</div>`;
-  chat.scrollTop = chat.scrollHeight;
-  
-  speak(aiResponse);
-}
 
 function clearChat(){
   document.getElementById("chat").innerHTML = "";
@@ -388,6 +351,7 @@ function esc(s){
   return s.replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))
 }
 
+// Audio wave visualizer simulation
 const wave = document.getElementById("wave");
 for(let i = 0; i < 24; i++){
   const b = document.createElement("i");
